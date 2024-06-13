@@ -1,4 +1,7 @@
- a functions that calculates the fewest number of operations
+#!/usr/bin/python3
+
+"""
+    a functions that calculates the fewest number of operations
     needed to result in exactly n H characters in the file
     given a number n
 """
