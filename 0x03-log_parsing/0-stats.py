@@ -1,54 +1,82 @@
 #!/usr/bin/python3
-
+"""
+Script that reads stdin line by line and computes metrics
+"""
 import sys
+import re
+import signal
 
 
-def print_msg(dict_sc, total_file_size):
+def format_check(data):
     """
-    Method to print
-    Args:
-        dict_sc: dict of status codes
-        total_file_size: total of the file
-    Returns:
-        Nothing
+    Checks for the input format using regex, and
+    the line must be skipped if it does not match
     """
+    pattern = re.compile(
+        r"(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) - "
+        r"\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{6})\] "
+        r'"GET \/projects\/260 HTTP\/1\.1" (\d{3}) (\d+)'
+    )
+    return bool(pattern.match(data))
 
-    print("File size: {}".format(total_file_size))
-    for key, val in sorted(dict_sc.items()):
-        if val != 0:
-            print("{}: {}".format(key, val))
+
+def log_passing():
+    """
+    Reads stdin line by line and computes metrics
+    """
+    status_code = {
+        200: 0,
+        301: 0,
+        400: 0,
+        401: 0,
+        403: 0,
+        404: 0,
+        405: 0,
+        500: 0
+    }
+    total_size = 0
+    counter = 0
+
+    def signal_handler(signum, frame):
+        """
+        Signal handler for printing the stats before exiting
+        """
+        print("File size: {}".format(total_size))
+        for key in sorted(status_code.keys()):
+            if status_code[key] != 0:
+                print("{}: {}".format(key, status_code[key]))
+        sys.exit(0)
+
+    # Register the signal handler for SIGINT (CTRL + C)
+    signal.signal(signal.SIGINT, signal_handler)
+
+    try:
+        for line in sys.stdin:
+            try:
+                if not format_check(line):
+                    continue
+                counter += 1
+                data = line.split()
+                total_size += int(data[-1])
+
+                status = int(data[-2])
+                if status in status_code:
+                    status_code[status] += 1
+                if counter == 10:
+                    print("File size: {}".format(total_size))
+                    for key in sorted(status_code.keys()):
+                        if status_code[key] != 0:
+                            print("{}: {}".format(key, status_code[key]))
+                    counter = 0
+
+            except Exception as e:
+                # If any other exception occurs, skip the line
+                continue
+
+    except KeyboardInterrupt:
+        # If we get a keyboard interrupt, print the stats before exiting
+        signal_handler(signal.SIGINT, None)
 
 
-total_file_size = 0
-code = 0
-counter = 0
-dict_sc = {"200": 0,
-           "301": 0,
-           "400": 0,
-           "401": 0,
-           "403": 0,
-           "404": 0,
-           "405": 0,
-           "500": 0}
-
-try:
-    for line in sys.stdin:
-        parsed_line = line.split()  # ✄ trimming
-        parsed_line = parsed_line[::-1]  # inverting
-
-        if len(parsed_line) > 2:
-            counter += 1
-
-            if counter <= 10:
-                total_file_size += int(parsed_line[0])  # file size
-                code = parsed_line[1]  # status code
-
-                if (code in dict_sc.keys()):
-                    dict_sc[code] += 1
-
-            if (counter == 10):
-                print_msg(dict_sc, total_file_size)
-                counter = 0
-
-finally:
-    print_msg(dict_
+if __name__ == "__main__":
+    log_passing()
