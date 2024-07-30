@@ -1,43 +1,26 @@
-#!/usr/bin/python3
-""" The Island Perimeter """
-
-
 def island_perimeter(grid):
-    """ return perimeter of the island that is described in grid """
-    total_perimeter = 0
+    """
+    Calculate the perimeter of the island described in grid.
+    """
+    perimeter = 0
+    rows = len(grid)
+    cols = len(grid[0])
+    
+    for r in range(rows):
+        for c in range(cols):
+            if grid[r][c] == 1:
+                # Check top
+                if r == 0 or grid[r - 1][c] == 0:
+                    perimeter += 1
+                # Check bottom
+                if r == rows - 1 or grid[r + 1][c] == 0:
+                    perimeter += 1
+                # Check left
+                if c == 0 or grid[r][c - 1] == 0:
+                    perimeter += 1
+                # Check right
+                if c == cols - 1 or grid[r][c + 1] == 0:
+                    perimeter += 1
 
-    for i, row in enumerate(grid):
-        for j, element in enumerate(row):
-            # Check if element is land or sea
-            if (element == 0):
-                continue
+    return perimeter
 
-            # Left check
-            if (j != 0 and row[j - 1] == 0):
-                total_perimeter += 1
-            if (j == 0):
-                # left edge case
-                total_perimeter += 1
-
-            # Right check
-            if (j != len(row) - 1 and row[j + 1] == 0):
-                total_perimeter += 1
-            if (j == len(row) - 1):
-                # right edge case
-                total_perimeter += 1
-
-            # Upper check
-            if (i != 0 and grid[i - 1][j] == 0):
-                total_perimeter += 1
-            if (i == 0):
-                # top edge case
-                total_perimeter += 1
-
-            # Bottom Check
-            if (i != len(grid) - 1 and grid[i + 1][j] == 0):
-                total_perimeter += 1
-            if (i == len(grid) - 1):
-                # bottom edge case
-                total_perimeter += 1
-
-    return total_perimeter
