@@ -1,50 +1,49 @@
-def isWinner(x, nums):
-    # Helper function to find all primes up to a certain number n using Sieve of Eratosthenes
-    def get_primes(n):
-        sieve = [True] * (n + 1)
-        sieve[0] = sieve[1] = False  # 0 and 1 are not prime numbers
-        p = 2
-        while p * p <= n:
-            if sieve[p]:
-                for i in range(p * p, n + 1, p):
-                    sieve[i] = False
-            p += 1
-        return [p for p, is_prime in enumerate(sieve) if is_prime]
-    
-    # Helper function to determine the winner of the game for a given n
-    def determine_winner(n):
-        if n < 2:
-            return "Ben"  # No primes to pick
-        
-        primes = get_primes(n)
-        remaining = list(range(1, n + 1))
-        turn = 0  # Maria starts (0 for Maria, 1 for Ben)
-        
-        while primes:
-            prime = primes[0]
-            # Remove prime and its multiples from remaining
-            remaining = [num for num in remaining if num % prime != 0]
-            # Remove the prime from the list of primes
-            primes = [p for p in primes if p != prime]
-            # Change turn
-            turn = 1 - turn
-        
-        return "Maria" if turn == 1 else "Ben"
-    
-    maria_wins = 0
-    ben_wins = 0
-    
-    for n in nums:
-        winner = determine_winner(n)
-        if winner == "Maria":
-            maria_wins += 1
-        elif winner == "Ben":
-            ben_wins += 1
-    
-    if maria_wins > ben_wins:
-        return "Maria"
-    elif ben_wins > maria_wins:
-        return "Ben"
-    else:
-        return None
+#!/usr/bin/python3
 
+""" The prime Game """
+
+
+def check_prime(n):
+    """ Checks if n is the prime number """
+    for i in range(2, int(n ** 0.5) + 1):
+        if not n % i:
+            return False
+    return True
+
+
+def add_prime(n, primes):
+    """ Add the prime to list """
+    last_prime = primes[-1]
+    if n > last_prime:
+        for i in range(last_prime + 1, n + 1):
+            if check_prime(i):
+                primes.append(i)
+            else:
+                primes.append(0)
+
+
+def isWinner(x, nums):
+    """ x is a number of rounds and nums is the array of n
+    Return: name of a player that won most rounds
+    If a winner cannot be determined, return None """
+
+    score = {"Maria": 0, "Ben": 0}
+    primes = [0, 0, 2]
+    add_prime(max(nums), primes)
+
+    for round in range(x):
+        _sum = sum((i != 0 and i <= nums[round])
+                   for i in primes[:nums[round] + 1])
+        if (_sum % 2):
+            winner = "Maria"
+        else:
+            winner = "Ben"
+        if winner:
+            score[winner] += 1
+
+    if score["Maria"] > score["Ben"]:
+        return "Maria"
+    elif score["Ben"] > score["Maria"]:
+        return "Ben"
+
+    return None
